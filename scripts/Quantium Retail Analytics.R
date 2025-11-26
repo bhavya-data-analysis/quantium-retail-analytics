@@ -1,5 +1,5 @@
 ##################################
-# Quantium-Style Retail Analytics 
+# Quantium Retail Analytics 
 # Author: Bhavya Pandya
 #################################
 
