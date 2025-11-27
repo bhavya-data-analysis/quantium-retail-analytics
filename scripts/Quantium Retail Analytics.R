@@ -1,9 +1,11 @@
-##################################
+##########################
 # Quantium Retail Analytics 
 # Author: Bhavya Pandya
-#################################
+##########################
+
 
 # 1. LOAD PACKAGES
+
 library(tidyverse)
 library(readxl)
 library(lubridate)
@@ -17,12 +19,15 @@ library(ggplot2)
 
 
 # 2. CREATE OUTPUT FOLDERS
+
 dir.create("outputs", showWarnings = FALSE)
 dir.create("outputs/tables", showWarnings = FALSE)
 dir.create("outputs/plots", showWarnings = FALSE)
 
+
 # 3. LOAD EXCEL FILE
-data_path <- "/Users/ompandya/Downloads/Online Retail.xlsx"   # <-- YOUR EXCEL FILE
+# -----------------------------
+data_path <- "data/Online Retail.xlsx"   # <-- YOUR EXCEL PATH
 
 retail <- read_excel(data_path) %>%
   clean_names()
@@ -30,7 +35,9 @@ retail <- read_excel(data_path) %>%
 glimpse(retail)
 skim(retail)
 
+# -----------------------------
 # 4. CLEAN DATA
+# -----------------------------
 retail_clean <- retail %>%
   filter(!is.na(customer_id)) %>%
   filter(quantity > 0) %>%
@@ -41,8 +48,9 @@ retail_clean <- retail %>%
   ) %>%
   filter(!str_starts(invoice_no, "C"))
 
-
+# -----------------------------
 # 5. SUMMARY TABLE
+# -----------------------------
 summary_table <- retail_clean %>%
   summarise(
     total_transactions = n_distinct(invoice_no),
@@ -53,7 +61,9 @@ summary_table <- retail_clean %>%
 
 write.csv(summary_table, "outputs/tables/summary_table.csv", row.names = FALSE)
 
+# -----------------------------
 # 6. TOP PRODUCTS
+# -----------------------------
 top_products <- retail_clean %>%
   group_by(description) %>%
   summarise(
@@ -65,8 +75,9 @@ top_products <- retail_clean %>%
 
 write.csv(top_products, "outputs/tables/top_products.csv", row.names = FALSE)
 
-
+# -----------------------------
 # 7. TOP CUSTOMERS
+# -----------------------------
 top_customers <- retail_clean %>%
   group_by(customer_id) %>%
   summarise(
@@ -78,15 +89,16 @@ top_customers <- retail_clean %>%
 
 write.csv(top_customers, "outputs/tables/top_customers.csv", row.names = FALSE)
 
-
+# -----------------------------
 # 8. MONTHLY REVENUE TREND + PRINT
+# -----------------------------
 monthly_sales <- retail_clean %>%
   mutate(month = floor_date(invoice_date, "month")) %>%
   group_by(month) %>%
   summarise(total_sales = sum(total_price))
 
 p1 <- ggplot(monthly_sales, aes(x = month, y = total_sales)) +
-  geom_line(size = 1.2, color = "steelblue") +
+  geom_line(size = 1.2, color = "blue") +
   scale_y_continuous(labels = dollar) +
   labs(
     title = "Monthly Revenue Trend",
@@ -98,8 +110,9 @@ p1 <- ggplot(monthly_sales, aes(x = month, y = total_sales)) +
 print(p1)
 ggsave("outputs/plots/monthly_revenue_trend.png", p1, width = 8, height = 4)
 
-
+# -----------------------------
 # 9. RFM ANALYSIS + PRINT
+# -----------------------------
 rfm <- retail_clean %>%
   group_by(customer_id) %>%
   summarise(
@@ -124,7 +137,9 @@ p2 <- fviz_cluster(k3, data = rfm_scaled,
 print(p2)
 ggsave("outputs/plots/rfm_clusters.png", p2, width = 7, height = 5)
 
+# -----------------------------
 # 10. PRODUCT CLUSTERING + PRINT
+# -----------------------------
 product_sales <- retail_clean %>%
   group_by(stock_code) %>%
   summarise(
@@ -148,8 +163,8 @@ p3 <- fviz_cluster(pk3, data = product_scaled,
 print(p3)
 ggsave("outputs/plots/product_clusters.png", p3, width = 7, height = 5)
 
-# DONE
-cat("\n- ANALYSIS COMPLETE -\n")
-cat("All tables saved to: outputs/tables\n")
-cat("All plots saved to: outputs/plots\n")
-cat("-\n")
+
+cat("\n-------- ANALYSIS COMPLETE --------\n")
+cat("Tables saved to: outputs/tables\n")
+cat("Plots saved to: outputs/plots\n")
+cat("-------\n")
